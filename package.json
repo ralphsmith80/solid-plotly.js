@@ -1,17 +1,17 @@
 {
-  "name": "{{name_of_lib}}",
+  "name": "solid-plotly.js",
   "version": "0.0.0",
-  "description": "{{desc_of_lib}}",
+  "description": "A plotly.js SolidJS component from Plotly",
   "license": "MIT",
-  "author": "{{me}}",
+  "author": "ralphsmith80",
   "contributors": [],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/{{me}}/{{name_of_lib}}.git"
+    "url": "git+https://github.com/ralphsmith80/solid-plotly.js.git"
   },
-  "homepage": "https://github.com/{{me}}/{{name_of_lib}}#readme",
+  "homepage": "https://github.com/ralphsmith80/solid-plotly.js#readme",
   "bugs": {
-    "url": "https://github.com/{{me}}/{{name_of_lib}}/issues"
+    "url": "https://github.com/ralphsmith80/solid-plotly.js/issues"
   },
   "files": [
     "dist"
