@@ -10,13 +10,16 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/plotly.js-dist-min": "^2.3.4",
     "solid-devtools": "^0.29.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
     "vite-plugin-solid": "^2.8.2"
   },
   "dependencies": {
-    "solid-plotly.js": "workspace:*",
-    "solid-js": "^1.8.11"
+    "plotly.js": "^2.35.2",
+    "plotly.js-dist-min": "^2.35.2",
+    "solid-js": "^1.8.11",
+    "solid-plotly.js": "workspace:*"
   }
 }

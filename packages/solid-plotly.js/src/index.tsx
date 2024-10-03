@@ -1,26 +1,15 @@
-import { Accessor, Component, createComputed, createSignal } from 'solid-js'
+import Plotly from 'plotly.js/dist/plotly';
+import plotComponentFactory from './factory';
+export type {
+  PlotlyComponentProps,
+  PlotlyFigure,
+  PlotlyHTMLElementEventName
+} from './types';
 
-export function createHello(): [Accessor<string>, (to: string) => void] {
-  const [hello, setHello] = createSignal('Hello World!')
+// Create and export the default Plotly component
+export const PlotComponent = plotComponentFactory(Plotly);
 
-  return [hello, (to: string) => setHello(`Hello ${to}!`)]
-}
+// Export the factory for users who want to use a different Plotly instance
+export { plotComponentFactory };
 
-export const Hello: Component<{ to?: string }> = props => {
-  const [hello, setHello] = createHello()
-
-  // Console calls will be removed in production if `dropConsole` is enabled
-
-  // eslint-disable-next-line no-console
-  console.log('Hello World!')
-
-  createComputed(() => {
-    if (typeof props.to === 'string') setHello(props.to)
-  })
-
-  return (
-    <>
-      <div>{hello()}</div>
-    </>
-  )
-}
+export default PlotComponent;
