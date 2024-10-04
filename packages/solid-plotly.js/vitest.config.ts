@@ -25,15 +25,20 @@ export default defineConfig(({ mode }) => {
         PROD: testSSR ? '1' : '',
       },
       environment: testSSR ? 'node' : 'jsdom',
+      globals: true,
+      deps: {
+        inline: ['plotly.js']
+      },
+      setupFiles: ['./test/setup.ts'],
       transformMode: { web: [/\.[jt]sx$/] },
       ...(testSSR
         ? {
-            include: ['test/server.test.{ts,tsx}'],
-          }
+          include: ['test/server.test.{ts,tsx}'],
+        }
         : {
-            include: ['test/*.test.{ts,tsx}'],
-            exclude: ['test/server.test.{ts,tsx}'],
-          }),
+          include: ['test/*.test.{ts,tsx}'],
+          exclude: ['test/server.test.{ts,tsx}'],
+        }),
     },
     resolve: {
       conditions: testSSR ? ['node'] : ['browser', 'development'],
