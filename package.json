@@ -18,7 +18,8 @@
     "dev:all": "concurrently \"pnpm --filter solid-plotly.js build:watch\" \"pnpm --filter demo dev\"",
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
-    "lint": "pnpm -r run lint"
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
