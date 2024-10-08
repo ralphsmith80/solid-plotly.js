@@ -178,6 +178,8 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       const { data, layout, config, frames, revision } = props;
       let prevFramesLength = frames?.length ?? 0;
 
+      // TODO: SolidJS doesn't have a return value for createEffect
+      // Cleanup code should be done in onCleanup
       return () => {
         const numNextFrames = frames?.length ?? 0;
         const figureChanged =
