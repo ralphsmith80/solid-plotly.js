@@ -88,7 +88,7 @@ export interface PlotlyEventHandlers {
 }
 
 export interface PlotlyComponentProps extends PlotlyEventHandlers {
-  data: PlotData[];
+  data: Partial<PlotData>[];
   layout?: Partial<Layout>;
   config?: Partial<Config>;
   frames?: Partial<Frame>[];
