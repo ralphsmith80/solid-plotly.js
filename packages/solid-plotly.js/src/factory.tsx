@@ -1,4 +1,4 @@
-import { onMount, createEffect, onCleanup, createMemo, on } from 'solid-js'
+import { onMount, onCleanup, createMemo, on } from 'solid-js'
 import PlotlyInstance from 'plotly.js'
 
 import type { JSX } from 'solid-js'
