@@ -1,4 +1,4 @@
-import { onMount, createEffect, onCleanup } from 'solid-js'
+import { onMount, createEffect, onCleanup, createMemo, on } from 'solid-js'
 import PlotlyInstance from 'plotly.js'
 
 import type { JSX } from 'solid-js'
@@ -62,6 +62,11 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     let el: PlotlyHTMLElementWithListener | null = null
     let resizeHandler: (() => void) | null = null
     const handlers: Partial<Record<PlotlyHTMLElementEventName, EventHandler>> = {}
+    const data = () => props.data
+    const layout = () => props.layout
+    const config = () => props.config
+    const frames = () => props.frames
+    const revision = () => props.revision
 
     const attachUpdateEvents = () => {
       if (!el || typeof el.on !== 'function') return
@@ -179,31 +184,60 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     }
 
     onMount(() => {
+      // console.log('solid-plotly on mount:', props.data)
       updatePlotly(true, props.onInitialized, true)
     })
 
-    createEffect(() => {
-      const { data, layout, config, frames, revision } = props
-      let prevFramesLength = frames?.length ?? 0
-
-      // TODO: SolidJS doesn't have a return value for createEffect
-      // Cleanup code should be done in onCleanup
-      return () => {
-        const numNextFrames = frames?.length ?? 0
-        const figureChanged =
-          data !== props.data ||
-          layout !== props.layout ||
-          config !== props.config ||
-          numNextFrames !== prevFramesLength
-        const revisionDefined = revision !== undefined
-        const revisionChanged = revision !== props.revision
-
-        if (figureChanged || (revisionDefined && revisionChanged)) {
-          prevFramesLength = numNextFrames
+    createMemo(
+      on(
+        data,
+        () => {
+          // console.log('solid-plotly memo data:', props.data)
           updatePlotly(false, props.onUpdate, false)
-        }
-      }
-    })
+        },
+        { defer: true },
+      ),
+    )
+    createMemo(
+      on(
+        layout,
+        () => {
+          // console.log('solid-plotly memo layout:', props.layout)
+          updatePlotly(false, props.onUpdate, false)
+        },
+        { defer: true },
+      ),
+    )
+    createMemo(
+      on(
+        config,
+        () => {
+          // console.log('solid-plotly memo config:', props.config)
+          updatePlotly(false, props.onUpdate, false)
+        },
+        { defer: true },
+      ),
+    )
+    createMemo(
+      on(
+        frames,
+        () => {
+          // console.log('solid-plotly memo frames:', props.frames)
+          updatePlotly(false, props.onUpdate, false)
+        },
+        { defer: true },
+      ),
+    )
+    createMemo(
+      on(
+        revision,
+        () => {
+          // console.log('solid-plotly memo revision:', props.revision)
+          updatePlotly(false, props.onUpdate, false)
+        },
+        { defer: true },
+      ),
+    )
 
     onCleanup(() => {
       figureCallback(props.onPurge)
@@ -217,12 +251,6 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
 
       if (el) {
         Plotly.purge(el)
-      }
-    })
-
-    createEffect(() => {
-      if (el) {
-        syncEventHandlers()
       }
     })
 
