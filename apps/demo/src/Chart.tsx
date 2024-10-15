@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import { createSignal } from 'solid-js';
-import Plot from 'solid-plotly.js';
-import type { PlotlyFigure } from 'solid-plotly.js';
-import type { PlotType } from 'plotly.js-dist-min';
+import { createSignal } from 'solid-js'
+import Plot from 'solid-plotly.js'
+import type { PlotlyFigure } from 'solid-plotly.js'
+import type { PlotType } from 'plotly.js'
 
 export const Chart = () => {
   const [data] = createSignal<Partial<Plotly.PlotData>[]>([
@@ -13,27 +13,27 @@ export const Chart = () => {
       mode: 'lines+markers',
       marker: { color: 'red' },
     },
-  ]);
+  ])
 
   const [layout] = createSignal<PlotlyFigure['layout']>({
     title: 'A Simple Plot',
-  });
+  })
 
   const handleInitialized = (figure: PlotlyFigure) => {
-    console.log('Plotly chart initialized:', figure);
-  };
+    console.log('Plotly chart initialized:', figure)
+  }
 
   const handleUpdate = (figure: PlotlyFigure) => {
-    console.log('Plotly chart updated:', figure);
-  };
+    console.log('Plotly chart updated:', figure)
+  }
 
   const handleError = (error: Error) => {
-    console.error('Plotly chart error:', error);
-  };
+    console.error('Plotly chart error:', error)
+  }
 
   const handlePurge = () => {
-    console.log('Plotly chart purged.');
-  };
+    console.log('Plotly chart purged.')
+  }
 
   return (
     <Plot
@@ -48,7 +48,7 @@ export const Chart = () => {
       class="my-plotly-chart"
       divId="my-plotly-div"
     />
-  );
-};
+  )
+}
 
-export default Chart;
+export default Chart

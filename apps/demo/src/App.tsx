@@ -1,7 +1,7 @@
-import type { Component } from 'solid-js';
-import { Chart } from './Chart';
-import { CustomBundleChart } from './CustomBundleChart';
-import styles from './App.module.css';
+import type { Component } from 'solid-js'
+import { Chart } from './Chart'
+import { CustomBundleChart } from './CustomBundleChart'
+import styles from './App.module.css'
 
 const App: Component = () => {
   return (
@@ -13,7 +13,7 @@ const App: Component = () => {
         <CustomBundleChart />
       </header>
     </div>
-  );
-};
+  )
+}
 
-export default App;
+export default App
