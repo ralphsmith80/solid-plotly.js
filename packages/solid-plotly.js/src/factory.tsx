@@ -1,5 +1,5 @@
 import PlotlyInstance from 'plotly.js'
-import { createEffect, createSignal, onCleanup, onMount } from 'solid-js'
+import { createEffect, onCleanup, onMount } from 'solid-js'
 
 import type { PlotData } from 'plotly.js'
 import type { JSX } from 'solid-js'
@@ -59,110 +59,102 @@ const isBrowser = typeof window !== 'undefined'
 
 export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
   const PlotlyComponent = (props: PlotlyComponentProps): JSX.Element => {
-    const [plotEl, setPlotEl] = createSignal<PlotlyHTMLElementWithListener | null>(null)
-
-    // Type guard to check if an event is a basic event
-    const isBasicEvent = (eventName: PlotlyHTMLElementEventName): eventName is PlotlyBasicEvent => {
-      return updateEvents.includes(eventName)
-    }
-
-    const figureCallback = (callback?: EventHandler) => {
-      const el = plotEl()
-      if (typeof callback === 'function' && el) {
-        const figure: PlotlyFigure = {
-          data: el.data as Partial<PlotData>[],
-          layout: el.layout,
-          frames: el._transitionData ? el._transitionData._frames : undefined,
-        }
-        callback(figure, el)
+    const onRef = (el: PlotlyHTMLElementWithListener) => {
+      // Type guard to check if an event is a basic event
+      const isBasicEvent = (
+        eventName: PlotlyHTMLElementEventName,
+      ): eventName is PlotlyBasicEvent => {
+        return updateEvents.includes(eventName)
       }
-    }
 
-    const initUpdateEvents = (el: PlotlyHTMLElementWithListener) => {
-      if (typeof el.on !== 'function') return
-
-      const handleUpdate = () => figureCallback(props.onUpdate)
-
-      updateEvents.forEach(updateEvent => {
-        el.on(updateEvent as PlotlyBasicEvent, handleUpdate)
-      })
-
-      onCleanup(() => {
-        updateEvents.forEach(updateEvent => {
-          el.removeListener(updateEvent as PlotlyBasicEvent, handleUpdate)
-        })
-      })
-    }
-
-    const initEventHandlers = (el: PlotlyHTMLElementWithListener) => {
-      Object.entries(eventNameMapping).forEach(([propName, plotlyEventName]) => {
-        createEffect(() => {
-          const handler = props[propName as keyof PlotlyEventHandlers]
-
-          if (handler && isBasicEvent(plotlyEventName)) {
-            const handle = () => handler(getCurrentFigure(), el)
-            el.on(plotlyEventName, handle)
-            onCleanup(() => el?.removeListener(plotlyEventName, handle))
+      const figureCallback = (callback?: EventHandler) => {
+        if (typeof callback === 'function' && el) {
+          const figure: PlotlyFigure = {
+            data: el.data as Partial<PlotData>[],
+            layout: el.layout,
+            frames: el._transitionData ? el._transitionData._frames : undefined,
           }
+          callback(figure, el)
+        }
+      }
+
+      const initUpdateEvents = () => {
+        if (typeof el.on !== 'function') return
+
+        const handleUpdate = () => figureCallback(props.onUpdate)
+
+        updateEvents.forEach(updateEvent => {
+          el.on(updateEvent as PlotlyBasicEvent, handleUpdate)
+        })
+
+        onCleanup(() => {
+          updateEvents.forEach(updateEvent => {
+            el.removeListener(updateEvent as PlotlyBasicEvent, handleUpdate)
+          })
+        })
+      }
+
+      const initEventHandlers = () => {
+        Object.entries(eventNameMapping).forEach(([propName, plotlyEventName]) => {
+          createEffect(() => {
+            const handler = props[propName as keyof PlotlyEventHandlers]
+
+            if (handler && isBasicEvent(plotlyEventName)) {
+              const handle = () => handler(getCurrentFigure(), el)
+              el.on(plotlyEventName, handle)
+              onCleanup(() => el?.removeListener(plotlyEventName, handle))
+            }
+          })
+        })
+      }
+
+      const getCurrentFigure = (): PlotlyFigure => {
+        return {
+          data: el?.data as Partial<PlotData>[],
+          layout: el?.layout ?? {},
+          frames: el?._transitionData?._frames,
+        }
+      }
+
+      const updatePlotly = async (callback?: EventHandler) => {
+        try {
+          await Plotly.react(el, props.data, props.layout || {}, props.config)
+          figureCallback(callback)
+        } catch (err) {
+          if (props.onError && err instanceof Error) {
+            props.onError(err)
+          } else {
+            // eslint-disable-next-line no-console
+            console.error('PlotlyComponent error:', err)
+          }
+        }
+      }
+
+      onMount(() => {
+        initEventHandlers()
+        initUpdateEvents()
+        updatePlotly(props.onInitialized)
+
+        if (isBrowser && props.useResizeHandler) {
+          const resizeHandler = () => el && Plotly.Plots.resize(el)
+          window.addEventListener('resize', resizeHandler)
+          onCleanup(() => window.removeEventListener('resize', resizeHandler))
+        }
+
+        onCleanup(() => {
+          figureCallback(props.onPurge)
+          Plotly.purge(el)
         })
       })
+
+      createEffect(() => updatePlotly(props.onUpdate), { defer: true })
     }
-
-    const getCurrentFigure = (): PlotlyFigure => {
-      const el = plotEl()
-      return {
-        data: el?.data as Partial<PlotData>[],
-        layout: el?.layout ?? {},
-        frames: el?._transitionData?._frames,
-      }
-    }
-
-    const updatePlotly = async (callback?: EventHandler) => {
-      try {
-        const el = plotEl()
-        if (!el) {
-          throw new Error('Missing element reference')
-        }
-
-        await Plotly.react(el, props.data, props.layout || {}, props.config)
-
-        figureCallback(callback)
-      } catch (err) {
-        if (props.onError && err instanceof Error) {
-          props.onError(err)
-        } else {
-          // eslint-disable-next-line no-console
-          console.error('PlotlyComponent error:', err)
-        }
-      }
-    }
-
-    onMount(() => {
-      const el = plotEl()!
-
-      initEventHandlers(el)
-      initUpdateEvents(el)
-      updatePlotly(props.onInitialized)
-
-      if (isBrowser && props.useResizeHandler) {
-        const resizeHandler = () => el && Plotly.Plots.resize(el)
-        window.addEventListener('resize', resizeHandler)
-        onCleanup(() => window.removeEventListener('resize', resizeHandler))
-      }
-
-      onCleanup(() => {
-        figureCallback(props.onPurge)
-        Plotly.purge(el)
-      })
-    })
-
-    createEffect(() => updatePlotly(props.onUpdate), { defer: true })
 
     return (
       <div
         id={props.divId}
         style={props.style}
-        ref={el => setPlotEl(el as unknown as PlotlyHTMLElementWithListener)}
+        ref={_el => onRef(_el as unknown as PlotlyHTMLElementWithListener)}
         class={props.class}
       />
     )
