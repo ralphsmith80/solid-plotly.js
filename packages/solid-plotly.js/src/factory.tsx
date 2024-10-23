@@ -146,11 +146,5 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     )
   }
 
-  PlotlyComponent.defaultProps = {
-    useResizeHandler: false,
-    data: [],
-    style: { position: 'relative', display: 'inline-block' } as const,
-  }
-
   return PlotlyComponent
 }
