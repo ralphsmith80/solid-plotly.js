@@ -160,6 +160,8 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       shouldAttachUpdateEvents: boolean = false,
     ) => {
       try {
+        await new Promise(resolve => setTimeout(resolve, 0))
+
         if (!el) {
           throw new Error('Missing element reference')
         }

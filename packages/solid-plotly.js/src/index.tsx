@@ -1,5 +1,8 @@
-import Plotly from 'plotly.js/dist/plotly'
+import Plotly from 'plotly.js-dist-min'
+// INFO: using plotly.js/dist/plotly causes an error when running the dev server
+// import Plotly from 'plotly.js/dist/plotly'
 import plotComponentFactory from './factory'
+
 export type { PlotlyComponentProps, PlotlyFigure, PlotlyHTMLElementEventName } from './types'
 
 // Create and export the default Plotly component
