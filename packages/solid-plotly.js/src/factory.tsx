@@ -1,4 +1,4 @@
-import { onMount, onCleanup, createMemo, on } from 'solid-js'
+import { onMount, onCleanup, createMemo, createSignal, on } from 'solid-js'
 import PlotlyInstance from 'plotly.js'
 
 import type { JSX } from 'solid-js'
@@ -59,7 +59,7 @@ const isBrowser = typeof window !== 'undefined'
 
 export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
   const PlotlyComponent = (props: PlotlyComponentProps): JSX.Element => {
-    let el: PlotlyHTMLElementWithListener | null = null
+    const [plotEl, setPlotEl] = createSignal<PlotlyHTMLElementWithListener | null>(null)
     let resizeHandler: (() => void) | null = null
     const handlers: Partial<Record<PlotlyHTMLElementEventName, EventHandler>> = {}
     const data = () => props.data
@@ -69,16 +69,18 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     const revision = () => props.revision
 
     const attachUpdateEvents = () => {
+      const el = plotEl()
       if (!el || typeof el.on !== 'function') return
       updateEvents.forEach(updateEvent => {
-        el?.on(updateEvent as PlotlyBasicEvent, () => handleUpdate())
+        el.on(updateEvent as PlotlyBasicEvent, () => handleUpdate())
       })
     }
 
     const removeUpdateEvents = () => {
+      const el = plotEl()
       if (!el || typeof el.removeListener !== 'function') return
       updateEvents.forEach(updateEvent => {
-        el?.removeListener(updateEvent as PlotlyBasicEvent, () => handleUpdate())
+        el.removeListener(updateEvent as PlotlyBasicEvent, () => handleUpdate())
       })
     }
 
@@ -87,6 +89,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     }
 
     const figureCallback = (callback?: EventHandler) => {
+      const el = plotEl()
       if (typeof callback === 'function' && el) {
         const figure: PlotlyFigure = {
           data: el.data as Partial<PlotData>[],
@@ -98,6 +101,8 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     }
 
     const syncWindowResize = (invoke: boolean) => {
+      const el = plotEl()
+
       if (!isBrowser) return
 
       if (props.useResizeHandler && !resizeHandler) {
@@ -129,16 +134,18 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     }
 
     const addEventHandler = (eventName: PlotlyHTMLElementEventName, handler: EventHandler) => {
+      const el = plotEl()
       handlers[eventName] = handler
       if (isBasicEvent(eventName)) {
-        el?.on(eventName, () => handler(getCurrentFigure(), el!))
+        el?.on(eventName, () => handler(getCurrentFigure(), el))
       }
     }
 
     const removeEventHandler = (eventName: PlotlyHTMLElementEventName) => {
+      const el = plotEl()
       const handler = handlers[eventName]
       if (handler && isBasicEvent(eventName)) {
-        el?.removeListener(eventName, () => handler(getCurrentFigure(), el!))
+        el?.removeListener(eventName, () => handler(getCurrentFigure(), el))
         delete handlers[eventName]
       }
     }
@@ -148,11 +155,14 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       return updateEvents.includes(eventName)
     }
 
-    const getCurrentFigure = (): PlotlyFigure => ({
-      data: el?.data as Partial<PlotData>[],
-      layout: el?.layout ?? {},
-      frames: el?._transitionData?._frames,
-    })
+    const getCurrentFigure = (): PlotlyFigure => {
+      const el = plotEl()
+      return {
+        data: el?.data as Partial<PlotData>[],
+        layout: el?.layout ?? {},
+        frames: el?._transitionData?._frames,
+      }
+    }
 
     const updatePlotly = async (
       shouldInvokeResizeHandler: boolean,
@@ -160,8 +170,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       shouldAttachUpdateEvents: boolean = false,
     ) => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 0))
-
+        const el = plotEl()
         if (!el) {
           throw new Error('Missing element reference')
         }
@@ -185,56 +194,42 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       }
     }
 
+    const retryUpdatePlotly = () => {
+      const el = plotEl()
+      if (el) {
+        updatePlotly(true, props.onInitialized, true)
+      } else {
+        setTimeout(retryUpdatePlotly, 0) // Retry after 1 tick
+      }
+    }
+
     onMount(() => {
       // console.log('solid-plotly on mount:', props.data)
-      updatePlotly(true, props.onInitialized, true)
+      retryUpdatePlotly()
     })
+
+    // INFO: This would be an alternative to using onMount with a retryUpdatePlotly function however,
+    //  it doesn't work as expected because when running the production app locally using a linked file
+    // createEffect(() => {
+    //   console.log('solid-plotly effect:')
+    //   const el = plotEl()
+    //   if (el) {
+    //     console.log('solid-plotly effect: updatePlotly')
+    //     updatePlotly(true, props.onInitialized, true)
+    //   }
+    // })
 
     createMemo(
       on(
-        data,
+        [data, layout, config, frames, revision],
         () => {
-          // console.log('solid-plotly memo data:', props.data)
-          updatePlotly(false, props.onUpdate, false)
-        },
-        { defer: true },
-      ),
-    )
-    createMemo(
-      on(
-        layout,
-        () => {
-          // console.log('solid-plotly memo layout:', props.layout)
-          updatePlotly(false, props.onUpdate, false)
-        },
-        { defer: true },
-      ),
-    )
-    createMemo(
-      on(
-        config,
-        () => {
-          // console.log('solid-plotly memo config:', props.config)
-          updatePlotly(false, props.onUpdate, false)
-        },
-        { defer: true },
-      ),
-    )
-    createMemo(
-      on(
-        frames,
-        () => {
-          // console.log('solid-plotly memo frames:', props.frames)
-          updatePlotly(false, props.onUpdate, false)
-        },
-        { defer: true },
-      ),
-    )
-    createMemo(
-      on(
-        revision,
-        () => {
-          // console.log('solid-plotly memo revision:', props.revision)
+          // console.log('solid-plotly memo [data, layout, config, frames, revision]:', [
+          //   props.data,
+          //   props.layout,
+          //   props.config,
+          //   props.frames,
+          //   props.revision,
+          // ])
           updatePlotly(false, props.onUpdate, false)
         },
         { defer: true },
@@ -242,6 +237,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     )
 
     onCleanup(() => {
+      const el = plotEl()
       figureCallback(props.onPurge)
 
       if (resizeHandler && isBrowser) {
@@ -261,7 +257,8 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
         id={props.divId}
         style={props.style}
         ref={elRef => {
-          el = elRef as unknown as PlotlyHTMLElementWithListener
+          // console.log('solid-plotly ref:', elRef)
+          setPlotEl(elRef as unknown as PlotlyHTMLElementWithListener)
         }}
         class={props.class}
       />
