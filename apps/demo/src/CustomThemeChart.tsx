@@ -1,5 +1,5 @@
 import { createMemo } from 'solid-js'
-import Plot from 'solid-plotly.js'
+import Plot from '@ralphsmith80/solid-plotly.js'
 import { Layout } from 'plotly.js'
 
 import type { Component } from 'solid-js'

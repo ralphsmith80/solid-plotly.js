@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-import { createSignal } from 'solid-js';
-import Plotly from 'plotly.js-dist-min';
-import { plotComponentFactory } from 'solid-plotly.js';
-import type { PlotlyFigure } from 'solid-plotly.js';
-import type { PlotType } from 'plotly.js-dist-min';
+import { createSignal } from 'solid-js'
+import Plotly from 'plotly.js-dist-min'
+import { plotComponentFactory } from '@ralphsmith80/solid-plotly.js'
+import type { PlotlyFigure } from '@ralphsmith80/solid-plotly.js'
+import type { PlotType } from 'plotly.js-dist-min'
 
 // Create the Plotly component using the factory
-const CustomPlot = plotComponentFactory(Plotly);
+const CustomPlot = plotComponentFactory(Plotly)
 
 export const CustomBundleChart = () => {
   const [data] = createSignal<Partial<Plotly.PlotData>[]>([
@@ -17,27 +17,27 @@ export const CustomBundleChart = () => {
       mode: 'lines+markers',
       marker: { color: 'red' },
     },
-  ]);
+  ])
 
   const [layout] = createSignal<PlotlyFigure['layout']>({
     title: 'A Simple Plot',
-  });
+  })
 
   const handleInitialized = (figure: PlotlyFigure) => {
-    console.log('Custom Plotly chart initialized:', figure);
-  };
+    console.log('Custom Plotly chart initialized:', figure)
+  }
 
   const handleUpdate = (figure: PlotlyFigure) => {
-    console.log('Custom Plotly chart updated:', figure);
-  };
+    console.log('Custom Plotly chart updated:', figure)
+  }
 
   const handleError = (error: Error) => {
-    console.error('Custom Plotly chart error:', error);
-  };
+    console.error('Custom Plotly chart error:', error)
+  }
 
   const handlePurge = () => {
-    console.log('Custom Plotly chart purged.');
-  };
+    console.log('Custom Plotly chart purged.')
+  }
 
   return (
     <CustomPlot
@@ -52,7 +52,7 @@ export const CustomBundleChart = () => {
       class="custom-plotly-instance-chart"
       divId="custom-plotly-instance-div"
     />
-  );
-};
+  )
+}
 
-export default CustomBundleChart;
+export default CustomBundleChart

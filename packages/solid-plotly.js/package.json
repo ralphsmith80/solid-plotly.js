@@ -1,5 +1,5 @@
 {
-  "name": "solid-plotly.js",
+  "name": "@ralphsmith80/solid-plotly.js",
   "version": "0.0.0",
   "description": "A plotly.js SolidJS component from Plotly",
   "license": "MIT",
@@ -61,7 +61,7 @@
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/jest-dom": "^6.5.0",
     "@types/event-emitter": "^0.3.5",
-    "@types/node": "^20.12.12",
+    "@types/node": "^22.7.9",
     "@types/plotly.js": "^2.33.4",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",

@@ -21,6 +21,6 @@
     "plotly.js": "^2.35.2",
     "plotly.js-dist-min": "^2.35.2",
     "solid-js": "^1.8.11",
-    "solid-plotly.js": "workspace:*"
+    "@ralphsmith80/solid-plotly.js": "workspace:*"
   }
 }

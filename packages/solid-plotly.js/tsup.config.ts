@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { defineConfig } from 'tsup'
 import * as preset from 'tsup-preset-solid'
 
@@ -39,4 +40,6 @@ export default defineConfig(config => {
   }
 
   return preset.generateTsupOptions(parsed_options)
+  // INFO: you can also modify the options here, like minimization
+  // .map(options => ({ ...options, minify: !watching }))
 })
