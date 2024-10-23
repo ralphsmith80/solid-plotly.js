@@ -89,7 +89,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
             if (handler && isBasicEvent(plotlyEventName)) {
               const handle = () => handler(getCurrentFigure(), el)
               el.on(plotlyEventName, handle)
-              onCleanup(() => el?.removeListener(plotlyEventName, handle))
+              onCleanup(() => el.removeListener(plotlyEventName, handle))
             }
           })
         })
@@ -97,9 +97,9 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
 
       const getCurrentFigure = (): PlotlyFigure => {
         return {
-          data: el?.data as Partial<PlotData>[],
-          layout: el?.layout ?? {},
-          frames: el?._transitionData?._frames,
+          data: el.data as Partial<PlotData>[],
+          layout: el.layout ?? {},
+          frames: el._transitionData?._frames,
         }
       }
 
@@ -125,7 +125,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
 
         createEffect(() => {
           if (isBrowser && props.useResizeHandler) {
-            const resizeHandler = () => el && Plotly.Plots.resize(el)
+            const resizeHandler = () => Plotly.Plots.resize(el)
             window.addEventListener('resize', resizeHandler)
             onCleanup(() => window.removeEventListener('resize', resizeHandler))
           }

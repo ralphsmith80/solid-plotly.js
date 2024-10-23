@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-import { createSignal } from 'solid-js'
-import Plot from '@ralphsmith80/solid-plotly.js'
 import type { PlotlyFigure } from '@ralphsmith80/solid-plotly.js'
+import Plot from '@ralphsmith80/solid-plotly.js'
 import type { PlotType } from 'plotly.js'
+import { createSignal } from 'solid-js'
 
 export const Chart = () => {
-  const [data] = createSignal<Partial<Plotly.PlotData>[]>([
+  const [data, setData] = createSignal<Partial<Plotly.PlotData>[]>([
     {
       x: [1, 2, 3, 4],
       y: [10, 15, 13, 17],
@@ -15,7 +15,7 @@ export const Chart = () => {
     },
   ])
 
-  const [layout] = createSignal<PlotlyFigure['layout']>({
+  const [layout, setLayout] = createSignal<PlotlyFigure['layout']>({
     title: 'A Simple Plot',
   })
 
@@ -34,6 +34,19 @@ export const Chart = () => {
   const handlePurge = () => {
     console.log('Plotly chart purged.')
   }
+
+  setTimeout(() => {
+    setLayout({ title: 'A Simple Plat' })
+    setData([
+      {
+        x: [1, 2, 3, 4],
+        y: [15, 10, 17, 13],
+        type: 'scatter' as PlotType,
+        mode: 'lines+markers',
+        marker: { color: 'blue' },
+      },
+    ])
+  }, 1000)
 
   return (
     <Plot
