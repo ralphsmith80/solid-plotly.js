@@ -123,11 +123,13 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
         updatePlotly(props.onInitialized)
         createEffect(() => updatePlotly(props.onUpdate), { defer: true })
 
-        if (isBrowser && props.useResizeHandler) {
-          const resizeHandler = () => el && Plotly.Plots.resize(el)
-          window.addEventListener('resize', resizeHandler)
-          onCleanup(() => window.removeEventListener('resize', resizeHandler))
-        }
+        createEffect(() => {
+          if (isBrowser && props.useResizeHandler) {
+            const resizeHandler = () => el && Plotly.Plots.resize(el)
+            window.addEventListener('resize', resizeHandler)
+            onCleanup(() => window.removeEventListener('resize', resizeHandler))
+          }
+        })
 
         onCleanup(() => {
           props.onPurge?.()
