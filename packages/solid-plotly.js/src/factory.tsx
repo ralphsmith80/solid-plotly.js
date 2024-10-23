@@ -55,33 +55,20 @@ const updateEvents: PlotlyHTMLElementEventName[] = [
   'plotly_sunburstclick',
 ]
 
+// Type guard to check if an event is a basic event
+const isBasicEvent = (eventName: PlotlyHTMLElementEventName): eventName is PlotlyBasicEvent => {
+  return updateEvents.includes(eventName)
+}
+
 const isBrowser = typeof window !== 'undefined'
 
 export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
   const PlotlyComponent = (props: PlotlyComponentProps): JSX.Element => {
     const onRef = (el: PlotlyHTMLElementWithListener) => {
-      // Type guard to check if an event is a basic event
-      const isBasicEvent = (
-        eventName: PlotlyHTMLElementEventName,
-      ): eventName is PlotlyBasicEvent => {
-        return updateEvents.includes(eventName)
-      }
-
-      const figureCallback = (callback?: EventHandler) => {
-        if (typeof callback === 'function' && el) {
-          const figure: PlotlyFigure = {
-            data: el.data as Partial<PlotData>[],
-            layout: el.layout,
-            frames: el._transitionData ? el._transitionData._frames : undefined,
-          }
-          callback(figure, el)
-        }
-      }
-
       const initUpdateEvents = () => {
         if (typeof el.on !== 'function') return
 
-        const handleUpdate = () => figureCallback(props.onUpdate)
+        const handleUpdate = () => props.onUpdate?.(getCurrentFigure(), el)
 
         updateEvents.forEach(updateEvent => {
           el.on(updateEvent as PlotlyBasicEvent, handleUpdate)
@@ -119,7 +106,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       const updatePlotly = async (callback?: EventHandler) => {
         try {
           await Plotly.react(el, props.data, props.layout || {}, props.config)
-          figureCallback(callback)
+          callback?.(getCurrentFigure(), el)
         } catch (err) {
           if (props.onError && err instanceof Error) {
             props.onError(err)
@@ -134,6 +121,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
         initEventHandlers()
         initUpdateEvents()
         updatePlotly(props.onInitialized)
+        createEffect(() => updatePlotly(props.onUpdate), { defer: true })
 
         if (isBrowser && props.useResizeHandler) {
           const resizeHandler = () => el && Plotly.Plots.resize(el)
@@ -142,12 +130,10 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
         }
 
         onCleanup(() => {
-          figureCallback(props.onPurge)
+          props.onPurge?.()
           Plotly.purge(el)
         })
       })
-
-      createEffect(() => updatePlotly(props.onUpdate), { defer: true })
     }
 
     return (
