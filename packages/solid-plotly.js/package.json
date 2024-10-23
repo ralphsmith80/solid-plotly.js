@@ -17,6 +17,10 @@
     "dist"
   ],
   "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "sideEffects": false,
   "type": "module",
   "main": "./dist/index.js",
