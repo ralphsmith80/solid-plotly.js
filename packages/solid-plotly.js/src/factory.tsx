@@ -120,8 +120,12 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       onMount(() => {
         initEventHandlers()
         initUpdateEvents()
-        updatePlotly(props.onInitialized)
-        createEffect(() => updatePlotly(props.onUpdate), { defer: true })
+
+        let initialized = false
+        createEffect(() => {
+          updatePlotly(!initialized ? props.onInitialized : props.onUpdate)
+          initialized = true
+        })
 
         createEffect(() => {
           if (isBrowser && props.useResizeHandler) {
