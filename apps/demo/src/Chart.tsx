@@ -36,7 +36,7 @@ export const Chart = () => {
   }
 
   setTimeout(() => {
-    setLayout({ title: 'A Simple Plat' })
+    setLayout({ title: 'A Simple Plot Changed' })
     setData([
       {
         x: [1, 2, 3, 4],

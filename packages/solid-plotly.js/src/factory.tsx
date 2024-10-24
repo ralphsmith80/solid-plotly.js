@@ -65,6 +65,14 @@ const isBrowser = typeof window !== 'undefined'
 export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
   const PlotlyComponent = (props: PlotlyComponentProps): JSX.Element => {
     const onRef = (el: PlotlyHTMLElementWithListener) => {
+      const getCurrentFigure = (): PlotlyFigure => {
+        return {
+          data: el.data as Partial<PlotData>[],
+          layout: el.layout,
+          frames: el._transitionData?._frames,
+        }
+      }
+
       const initUpdateEvents = () => {
         if (typeof el.on !== 'function') return
 
@@ -86,24 +94,22 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
             const handler = props[propName as keyof PlotlyEventHandlers]
 
             if (handler && isBasicEvent(plotlyEventName)) {
-              const handle = () => handler(getCurrentFigure(), el)
-              el.on(plotlyEventName, handle)
-              onCleanup(() => el.removeListener(plotlyEventName, handle))
+              const handleEvent = () => handler(getCurrentFigure(), el)
+              el.on(plotlyEventName, handleEvent)
+              onCleanup(() => el.removeListener(plotlyEventName, handleEvent))
             }
           })
         })
       }
 
-      const getCurrentFigure = (): PlotlyFigure => {
-        return {
-          data: el.data as Partial<PlotData>[],
-          layout: el.layout ?? {},
-          frames: el._transitionData?._frames,
-        }
-      }
-
       const updatePlotly = async (callback?: EventHandler) => {
         try {
+          // INFO: this single tick await will address an obscure development issue with Plotly.js and Solid.js
+          //  If you use linking and attempt to run the built version of the app, you will get the following error
+          //  "Uncaught TypeError: Cannot read properties of null (reading 'namespaceURI')"
+          //  This is not an issue when using workspace linking in a pnpm monorepo
+          // await new Promise(resolve => setTimeout(resolve, 0))
+
           await Plotly.react(el, props.data, props.layout || {}, props.config)
           callback?.(getCurrentFigure(), el)
         } catch (err) {
@@ -120,10 +126,9 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
         initEventHandlers()
         initUpdateEvents()
 
-        let initialized = false
+        updatePlotly(props.onInitialized)
         createEffect(() => {
-          updatePlotly(!initialized ? props.onInitialized : props.onUpdate)
-          initialized = true
+          updatePlotly(props.onUpdate)
         })
 
         createEffect(() => {
