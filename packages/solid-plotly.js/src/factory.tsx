@@ -72,7 +72,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       const el = plotEl()
       if (!el || typeof el.on !== 'function') return
       updateEvents.forEach(updateEvent => {
-        el.on(updateEvent as PlotlyBasicEvent, () => handleUpdate())
+        el.on(updateEvent as PlotlyBasicEvent, handleUpdate)
       })
     }
 
@@ -80,7 +80,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
       const el = plotEl()
       if (!el || typeof el.removeListener !== 'function') return
       updateEvents.forEach(updateEvent => {
-        el.removeListener(updateEvent as PlotlyBasicEvent, () => handleUpdate())
+        el.removeListener(updateEvent as PlotlyBasicEvent, handleUpdate)
       })
     }
 
@@ -165,7 +165,6 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     }
 
     const updatePlotly = async (
-      shouldInvokeResizeHandler: boolean,
       callback?: EventHandler,
       shouldAttachUpdateEvents: boolean = false,
     ) => {
@@ -177,7 +176,6 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
 
         await Plotly.react(el, props.data, props.layout || {}, props.config)
 
-        syncWindowResize(shouldInvokeResizeHandler)
         syncEventHandlers()
         figureCallback(callback)
 
@@ -197,7 +195,8 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     const retryUpdatePlotly = () => {
       const el = plotEl()
       if (el) {
-        updatePlotly(true, props.onInitialized, true)
+        updatePlotly(props.onInitialized, true)
+        syncWindowResize(true)
       } else {
         setTimeout(retryUpdatePlotly, 0) // Retry after 1 tick
       }
@@ -215,7 +214,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
     //   const el = plotEl()
     //   if (el) {
     //     console.log('solid-plotly effect: updatePlotly')
-    //     updatePlotly(true, props.onInitialized, true)
+    //     updatePlotly(props.onInitialized, true)
     //   }
     // })
 
@@ -230,7 +229,7 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
           //   props.frames,
           //   props.revision,
           // ])
-          updatePlotly(false, props.onUpdate, false)
+          updatePlotly(props.onUpdate, false)
         },
         { defer: true },
       ),
