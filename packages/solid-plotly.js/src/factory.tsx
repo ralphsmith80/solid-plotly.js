@@ -69,7 +69,6 @@ export default function plotComponentFactory(Plotly: typeof PlotlyInstance) {
         if (typeof el.on !== 'function') return
 
         const handleUpdate = () => props.onUpdate?.(getCurrentFigure(), el)
-
         updateEvents.forEach(updateEvent => {
           el.on(updateEvent as PlotlyBasicEvent, handleUpdate)
         })
